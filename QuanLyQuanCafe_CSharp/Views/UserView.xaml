@@ -1,0 +1,55 @@
+<UserControl x:Class="QuanLyQuanCafe.Views.UserView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#F0F2F5">
+
+    <DockPanel>
+        <!-- Header -->
+        <Border DockPanel.Dock="Top" Background="#4E342E" Padding="15,10">
+            <TextBlock Text="QUẢN LÝ NHÂN VIÊN" FontSize="18" FontWeight="Bold" Foreground="White"/>
+        </Border>
+
+        <!-- Input Form - Đặt ở dưới cùng -->
+        <Border DockPanel.Dock="Bottom" Background="White" CornerRadius="5" Padding="15" Margin="20,10,20,20">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" Opacity="0.1" BlurRadius="10" ShadowDepth="0"/>
+            </Border.Effect>
+            <StackPanel Orientation="Horizontal">
+                <TextBox x:Name="txtUsername" Width="200" Height="35" Style="{StaticResource InputFieldStyle}" 
+                         VerticalContentAlignment="Center"/>
+                <TextBox x:Name="txtPassword" Width="200" Height="35" Margin="15,0,0,0"
+                         Style="{StaticResource InputFieldStyle}" VerticalContentAlignment="Center"/>
+                <ComboBox x:Name="cbRole" Width="120" Height="35" Margin="15,0,0,0" VerticalContentAlignment="Center">
+                    <ComboBoxItem Content="MANAGER"/>
+                    <ComboBoxItem Content="STAFF"/>
+                </ComboBox>
+                
+                <Button Content="➕ Thêm" Margin="30,0,0,0" Click="HandleAdd" Style="{StaticResource AddButtonStyle}"/>
+                <Button Content="✏ Sửa" Margin="10,0,0,0" Click="HandleEdit" Style="{StaticResource EditButtonStyle}"/>
+                <Button Content="🗑 Xóa" Margin="10,0,0,0" Click="HandleDelete" Style="{StaticResource DeleteButtonStyle}"/>
+                <Button Content="🔄 Mới" Margin="10,0,0,0" Click="HandleClear" Style="{StaticResource ClearButtonStyle}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- User List Card - Chiếm hết không gian còn lại -->
+        <Border Background="White" CornerRadius="5" Padding="15" Margin="20,20,20,0">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" Opacity="0.1" BlurRadius="10" ShadowDepth="0"/>
+            </Border.Effect>
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Danh Sách Nhân Viên" FontSize="14" FontWeight="Bold" Foreground="#666" Margin="0,0,0,10"/>
+                
+                <DataGrid x:Name="tableUsers" 
+                          ItemsSource="{Binding Users}"
+                          Style="{StaticResource ModernDataGridStyle}"
+                          SelectionChanged="OnUserSelected">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Tên đăng nhập" Binding="{Binding Username}" Width="*"/>
+                        <DataGridTextColumn Header="Mật khẩu" Binding="{Binding Password}" Width="*"/>
+                        <DataGridTextColumn Header="Vai trò" Binding="{Binding Role}" Width="150"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+    </DockPanel>
+</UserControl>

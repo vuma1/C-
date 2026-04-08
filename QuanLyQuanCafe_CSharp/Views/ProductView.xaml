@@ -1,0 +1,51 @@
+<UserControl x:Class="QuanLyQuanCafe.Views.ProductView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#F0F2F5">
+
+    <DockPanel>
+        <!-- Header -->
+        <Border DockPanel.Dock="Top" Background="#4E342E" Padding="15,10">
+            <TextBlock Text="QUẢN LÝ THỰC ĐƠN (MENU)" FontSize="18" FontWeight="Bold" Foreground="White"/>
+        </Border>
+
+        <!-- Input Form - Đặt ở dưới cùng -->
+        <Border DockPanel.Dock="Bottom" Background="White" CornerRadius="5" Padding="15" Margin="20,10,20,20">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" Opacity="0.1" BlurRadius="10" ShadowDepth="0"/>
+            </Border.Effect>
+            <StackPanel Orientation="Horizontal">
+                <TextBox x:Name="txtName" Width="250" Height="35" Style="{StaticResource InputFieldStyle}" 
+                         VerticalContentAlignment="Center" Tag="Nhập tên món mới..."/>
+                <TextBox x:Name="txtPrice" Width="150" Height="35" Style="{StaticResource InputFieldStyle}" 
+                         VerticalContentAlignment="Center" Tag="Nhập giá tiền..." Margin="15,0,0,0"
+                         PreviewTextInput="NumberOnly"/>
+                
+                <Button Content="➕ Thêm" Margin="30,0,0,0" Click="HandleAddProduct" Style="{StaticResource AddButtonStyle}"/>
+                <Button Content="✏ Sửa" Margin="10,0,0,0" Click="HandleEditProduct" Style="{StaticResource EditButtonStyle}"/>
+                <Button Content="🗑 Xóa" Margin="10,0,0,0" Click="HandleDeleteProduct" Style="{StaticResource DeleteButtonStyle}"/>
+                <Button Content="🔄 Mới" Margin="10,0,0,0" Click="HandleClear" Style="{StaticResource ClearButtonStyle}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Table Card - Chiếm hết không gian còn lại -->
+        <Border Background="White" CornerRadius="5" Padding="15" Margin="20,20,20,0">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" Opacity="0.1" BlurRadius="10" ShadowDepth="0"/>
+            </Border.Effect>
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Danh Sách Đồ Uống Hiện Tại" FontSize="14" FontWeight="Bold" Foreground="#666" Margin="0,0,0,10"/>
+                
+                <DataGrid x:Name="tableProducts" 
+                          ItemsSource="{Binding Products}"
+                          Style="{StaticResource ModernDataGridStyle}"
+                          SelectionChanged="OnProductSelected">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Tên Món" Binding="{Binding Name}" Width="*"/>
+                        <DataGridTextColumn Header="Giá Tiền (VNĐ)" Binding="{Binding Price, StringFormat={}{0:N0}}" Width="180"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+    </DockPanel>
+</UserControl>

@@ -1,0 +1,108 @@
+<UserControl x:Class="QuanLyQuanCafe.Views.FeedbackView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#F4F4F4">
+
+    <DockPanel>
+        <!-- Header -->
+        <Border DockPanel.Dock="Top" Background="#4E342E" Padding="15,10">
+            <TextBlock Text="ĐÁNH GIÁ CHẤT LƯỢNG DỊCH VỤ" FontSize="18" FontWeight="Bold" Foreground="White"/>
+        </Border>
+
+        <Grid Margin="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: Form -->
+            <Border Grid.Column="0" Background="White" CornerRadius="12" Padding="20" Margin="0,0,10,0">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" Opacity="0.08" BlurRadius="15" ShadowDepth="2"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="Đánh giá của bạn" FontSize="16" FontWeight="Bold" Foreground="#D84315" Margin="0,0,0,15"/>
+                    
+                    <!-- Star Rating -->
+                    <TextBlock Text="Số sao:" FontWeight="Bold" Foreground="#4E342E" Margin="0,0,0,8"/>
+                    <StackPanel Orientation="Horizontal" x:Name="ratingPanel" Margin="0,0,0,15">
+                        <RadioButton x:Name="rb1" Content="1⭐" GroupName="rating" Tag="1" Margin="0,0,15,0"/>
+                        <RadioButton x:Name="rb2" Content="2⭐" GroupName="rating" Tag="2" Margin="0,0,15,0"/>
+                        <RadioButton x:Name="rb3" Content="3⭐" GroupName="rating" Tag="3" Margin="0,0,15,0"/>
+                        <RadioButton x:Name="rb4" Content="4⭐" GroupName="rating" Tag="4" Margin="0,0,15,0"/>
+                        <RadioButton x:Name="rb5" Content="5⭐" GroupName="rating" Tag="5" IsChecked="True"/>
+                    </StackPanel>
+
+                    <!-- Product Rating -->
+                    <TextBlock Text="Đánh giá sản phẩm:" FontWeight="Bold" Foreground="#D84315" Margin="0,0,0,8"/>
+                    <StackPanel Margin="0,0,0,15">
+                        <CheckBox x:Name="cbProdTasty" Content="Ngon miệng" Margin="0,3"/>
+                        <CheckBox x:Name="cbProdBeautiful" Content="Trình bày đẹp" Margin="0,3"/>
+                        <CheckBox x:Name="cbProdTemperature" Content="Nhiệt độ phù hợp" Margin="0,3"/>
+                        <CheckBox x:Name="cbProdPrice" Content="Giá cả hợp lý" Margin="0,3"/>
+                    </StackPanel>
+
+                    <!-- Service Rating -->
+                    <TextBlock Text="Đánh giá dịch vụ:" FontWeight="Bold" Foreground="#D84315" Margin="0,0,0,8"/>
+                    <StackPanel Margin="0,0,0,15">
+                        <CheckBox x:Name="cbServFast" Content="Phục vụ nhanh" Margin="0,3"/>
+                        <CheckBox x:Name="cbServFriendly" Content="Nhân viên thân thiện" Margin="0,3"/>
+                        <CheckBox x:Name="cbServClean" Content="Quán sạch sẽ" Margin="0,3"/>
+                        <CheckBox x:Name="cbServWifi" Content="Wifi tốt" Margin="0,3"/>
+                    </StackPanel>
+
+                    <!-- Comment -->
+                    <TextBlock Text="Góp ý khác:" FontWeight="Bold" Foreground="#D84315" Margin="0,0,0,8"/>
+                    <TextBox x:Name="txtComment" Height="80" TextWrapping="Wrap" AcceptsReturn="True" 
+                             VerticalScrollBarVisibility="Auto" Style="{StaticResource InputFieldStyle}" Margin="0,0,0,15"/>
+
+                    <!-- Submit Button -->
+                    <Button Content="Gửi đánh giá" Click="HandleSubmit" Style="{StaticResource AddButtonStyle}" HorizontalAlignment="Right"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Right: Feedback List -->
+            <Border Grid.Column="1" Background="White" CornerRadius="12" Padding="20" Margin="10,0,0,0">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" Opacity="0.08" BlurRadius="15" ShadowDepth="2"/>
+                </Border.Effect>
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Các đánh giá gần đây" FontSize="16" FontWeight="Bold" Foreground="#D84315" Margin="0,0,0,15"/>
+                    
+                    <!-- DataGrid chiếm toàn bộ không gian còn lại -->
+                    <DataGrid x:Name="tableFeedback" 
+                              Style="{StaticResource ModernDataGridStyle}"
+                              RowStyle="{StaticResource ModernDataGridRowStyle}"
+                              CellStyle="{StaticResource ModernDataGridCellStyle}"
+                              ColumnHeaderStyle="{StaticResource ModernDataGridColumnHeaderStyle}"
+                              VerticalAlignment="Top">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Sao" Binding="{Binding StarStr}" Width="60"/>
+                            <DataGridTextColumn Header="Sản phẩm" Binding="{Binding ProductRating}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextWrapping" Value="Wrap"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Dịch vụ" Binding="{Binding ServiceRating}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextWrapping" Value="Wrap"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Góp ý" Binding="{Binding OtherComment}" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextWrapping" Value="Wrap"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </DockPanel>
+</UserControl>
