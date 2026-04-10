@@ -71,6 +71,7 @@
                     
                     <!-- DataGrid chiếm toàn bộ không gian còn lại -->
                     <DataGrid x:Name="tableFeedback" 
+                              ItemsSource="{Binding Feedbacks}"
                               Style="{StaticResource ModernDataGridStyle}"
                               RowStyle="{StaticResource ModernDataGridRowStyle}"
                               CellStyle="{StaticResource ModernDataGridCellStyle}"

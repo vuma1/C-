@@ -1,6 +1,4 @@
-using MySql.Data.MySqlClient;
-using QuanLyQuanCafe.Utils;
-using System.Collections.ObjectModel;
+using QuanLyQuanCafe.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -8,79 +6,61 @@ using System.Windows.Shapes;
 
 namespace QuanLyQuanCafe.Views
 {
-    public class ChartData
-    {
-        public string Label { get; set; } = "";
-        public double Value { get; set; }
-        public double BarHeight { get; set; }
-    }
-
     public partial class StatsView : UserControl
     {
-        private double maxChartValue = 0;
+        private readonly StatsViewModel _viewModel;
         private double niceMaxValue = 0;
-        private const double CHART_HEIGHT = 400;
 
         public StatsView()
         {
             InitializeComponent();
+            _viewModel = new StatsViewModel();
+            DataContext = _viewModel;
+
+            // Subscribe event khi ViewModel load xong data → vẽ lại biểu đồ
+            _viewModel.OnDataLoaded += RefreshChart;
+
             Loaded += StatsView_Loaded;
         }
 
         private void StatsView_Loaded(object sender, RoutedEventArgs e)
         {
-            LoadDailyStats();
+            // ViewModel đã load data trong constructor, chỉ cần vẽ chart
+            RefreshChart();
         }
 
-        private void LoadDailyStats()
+        /// <summary>
+        /// Đọc data từ ViewModel, tính BarHeight, rồi vẽ biểu đồ
+        /// </summary>
+        private void RefreshChart()
         {
-            var data = new ObservableCollection<ChartData>();
-            maxChartValue = 0;
+            var chartData = _viewModel.ChartItems;
 
-            try
+            // Tìm giá trị max
+            double maxValue = 0;
+            foreach (var item in chartData)
             {
-                using (var conn = DatabaseConnection.GetConnection())
-                {
-                    if (conn == null) return;
-
-                    string sql = @"SELECT DATE_FORMAT(created_at, '%d/%m') as report_date, SUM(total_amount) as total 
-                                   FROM orders 
-                                   WHERE DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) 
-                                   GROUP BY DATE(created_at) 
-                                   ORDER BY DATE(created_at) ASC";
-
-                    using (var cmd = new MySqlCommand(sql, conn))
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            string date = reader.GetString("report_date");
-                            double total = reader.GetDouble("total");
-                            data.Add(new ChartData { Label = date, Value = total });
-                            if (total > maxChartValue) maxChartValue = total;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Lỗi tải thống kê ngày: {ex.Message}");
+                if (item.Value > maxValue) maxValue = item.Value;
             }
 
-            // Round up max value to nice number for Y-axis
-            niceMaxValue = RoundUpToNice(maxChartValue);
+            // Làm tròn max để trục Y đẹp
+            niceMaxValue = RoundUpToNice(maxValue);
 
-            // Get actual chart height from layout
+            // Lấy chiều cao thực tế của vùng biểu đồ
             double chartHeight = yAxisLabels.ActualHeight > 0 ? yAxisLabels.ActualHeight : 400;
 
-            // Calculate bar heights based on niceMaxValue
-            foreach (var item in data)
+            // Tính chiều cao thanh cho từng mục
+            foreach (var item in chartData)
             {
                 item.BarHeight = niceMaxValue > 0 ? (item.Value / niceMaxValue) * chartHeight : 0;
             }
 
-            chartDaily.ItemsSource = data;
-            chartLabels.ItemsSource = data;
+            // Gán dữ liệu cho ItemsControl
+            chartDaily.ItemsSource = null;
+            chartDaily.ItemsSource = chartData;
+            chartLabels.ItemsSource = null;
+            chartLabels.ItemsSource = chartData;
+
             DrawYAxisAndGridLines();
         }
 

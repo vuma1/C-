@@ -47,6 +47,12 @@ namespace QuanLyQuanCafe.ViewModels
         public ICommand CheckoutCommand { get; }
         public ICommand FreeTableCommand { get; }
 
+        // Events để View biết khi nào cần refresh giao diện động
+        public event Action? OnTablesReloaded;
+        public event Action? OnProductsReloaded;
+        public event Action? OnCheckoutSuccess;
+        public event Action? OnOrderCleared;
+
         public OrderViewModel()
         {
             LoadCommand = new RelayCommand(_ => LoadData());
@@ -65,42 +71,58 @@ namespace QuanLyQuanCafe.ViewModels
             LoadTables();
         }
 
-        private void LoadProducts()
+        public void LoadProducts()
         {
             Products.Clear();
-            using var conn = _db.GetConnection();
-            if (conn == null) return;
-
-            string sql = "SELECT * FROM products";
-            using var cmd = new MySqlCommand(sql, conn);
-            using var reader = cmd.ExecuteReader();
-
-            while (reader.Read())
+            try
             {
-                Products.Add(new Product(
-                    reader.GetInt32("id"),
-                    reader.GetString("name"),
-                    reader.GetDouble("price")));
+                using var conn = _db.GetConnection();
+                if (conn == null) return;
+
+                string sql = "SELECT * FROM products";
+                using var cmd = new MySqlCommand(sql, conn);
+                using var reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    Products.Add(new Product(
+                        reader.GetInt32("id"),
+                        reader.GetString("name"),
+                        reader.GetDouble("price")));
+                }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi tải sản phẩm: {ex.Message}");
+            }
+            OnProductsReloaded?.Invoke();
         }
 
-        private void LoadTables()
+        public void LoadTables()
         {
             Tables.Clear();
-            using var conn = _db.GetConnection();
-            if (conn == null) return;
-
-            string sql = "SELECT * FROM tables";
-            using var cmd = new MySqlCommand(sql, conn);
-            using var reader = cmd.ExecuteReader();
-
-            while (reader.Read())
+            try
             {
-                Tables.Add(new Table(
-                    reader.GetInt32("id"),
-                    reader.GetString("name"),
-                    reader.GetString("status")));
+                using var conn = _db.GetConnection();
+                if (conn == null) return;
+
+                string sql = "SELECT * FROM tables";
+                using var cmd = new MySqlCommand(sql, conn);
+                using var reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    Tables.Add(new Table(
+                        reader.GetInt32("id"),
+                        reader.GetString("name"),
+                        reader.GetString("status")));
+                }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi tải bàn: {ex.Message}");
+            }
+            OnTablesReloaded?.Invoke();
         }
 
         private void AddToOrder()
@@ -132,55 +154,82 @@ namespace QuanLyQuanCafe.ViewModels
         {
             OrderItems.Clear();
             OnPropertyChanged(nameof(Total));
+            OnOrderCleared?.Invoke();
         }
 
         private void Checkout()
         {
             if (OrderItems.Count == 0 || SelectedTable == null) return;
 
-            using var conn = _db.GetConnection();
-            if (conn == null) return;
-
-            double total = Total;
-
-            // Insert order
-            string sql = "INSERT INTO orders (total_amount, created_at) VALUES (@total, NOW())";
-            using (var cmd = new MySqlCommand(sql, conn))
+            try
             {
-                cmd.Parameters.AddWithValue("@total", total);
-                cmd.ExecuteNonQuery();
-            }
+                using var conn = _db.GetConnection();
+                if (conn == null) return;
 
-            // Update table status
-            string sqlTable = "UPDATE tables SET status = 'Có khách' WHERE id = @id";
-            using (var cmd = new MySqlCommand(sqlTable, conn))
+                double total = Total;
+
+                // Insert order
+                string sql = "INSERT INTO orders (total_amount, created_at) VALUES (@total, NOW())";
+                using (var cmd = new MySqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@total", total);
+                    cmd.ExecuteNonQuery();
+                }
+
+                // Update table status
+                string sqlTable = "UPDATE tables SET status = 'Có khách' WHERE id = @id";
+                using (var cmd = new MySqlCommand(sqlTable, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", SelectedTable.Id);
+                    cmd.ExecuteNonQuery();
+                }
+
+                // Print invoice
+                InvoicePrinter.PrintOrderInvoice(SelectedTable.Name, OrderItems.ToList(), total);
+
+                MessageBox.Show($"Thanh toán thành công!\nTổng: {total:N0}đ", "Thông báo");
+
+                // Clear và reload
+                OrderItems.Clear();
+                OnPropertyChanged(nameof(Total));
+                SelectedTable = null;
+                OnCheckoutSuccess?.Invoke();
+                LoadTables();
+            }
+            catch (Exception ex)
             {
-                cmd.Parameters.AddWithValue("@id", SelectedTable.Id);
-                cmd.ExecuteNonQuery();
+                MessageBox.Show($"Lỗi thanh toán: {ex.Message}");
             }
-
-            // Print invoice
-            InvoicePrinter.PrintOrderInvoice(SelectedTable.Name, OrderItems.ToList(), total);
-
-            MessageBox.Show($"Thanh toán thành công!\nTổng: {total:N0}đ", "Thông báo");
-            ClearOrder();
-            LoadTables();
         }
 
         private void FreeTable()
         {
             if (SelectedTable == null) return;
 
-            using var conn = _db.GetConnection();
-            if (conn == null) return;
+            if (SelectedTable.Status?.ToLower() != "có khách")
+            {
+                MessageBox.Show("Bàn này đang trống, không cần trả!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
 
-            string sql = "UPDATE tables SET status = 'Trống' WHERE id = @id";
-            using var cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@id", SelectedTable.Id);
-            cmd.ExecuteNonQuery();
+            try
+            {
+                using var conn = _db.GetConnection();
+                if (conn == null) return;
 
-            LoadTables();
-            MessageBox.Show("Đã trả bàn!", "Thông báo");
+                string sql = "UPDATE tables SET status = 'Trống' WHERE id = @id";
+                using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@id", SelectedTable.Id);
+                cmd.ExecuteNonQuery();
+
+                SelectedTable = null;
+                LoadTables();
+                MessageBox.Show("Đã trả bàn!", "Thông báo");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khi trả bàn: {ex.Message}");
+            }
         }
     }
 }

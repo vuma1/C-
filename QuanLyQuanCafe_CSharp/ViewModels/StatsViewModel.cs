@@ -5,12 +5,19 @@ using System.Windows.Input;
 
 namespace QuanLyQuanCafe.ViewModels
 {
+    public class ChartData
+    {
+        public string Label { get; set; } = "";
+        public double Value { get; set; }
+        public double BarHeight { get; set; }
+    }
+
     public class StatsViewModel : BaseViewModel
     {
         private readonly DatabaseService _db = new();
         private bool _isDailyView = true;
 
-        public ObservableCollection<(string Label, double Value)> ChartData { get; } = new();
+        public ObservableCollection<ChartData> ChartItems { get; } = new();
 
         public bool IsDailyView
         {
@@ -25,6 +32,9 @@ namespace QuanLyQuanCafe.ViewModels
         public ICommand LoadDailyCommand { get; }
         public ICommand LoadMonthlyCommand { get; }
 
+        // Event để View biết khi nào cần vẽ lại biểu đồ
+        public event Action? OnDataLoaded;
+
         public StatsViewModel()
         {
             LoadDailyCommand = new RelayCommand(_ => { IsDailyView = true; });
@@ -35,17 +45,18 @@ namespace QuanLyQuanCafe.ViewModels
 
         public void LoadStats()
         {
-            ChartData.Clear();
+            ChartItems.Clear();
             var data = IsDailyView ? GetDailyStats() : GetMonthlyStats();
             foreach (var item in data)
             {
-                ChartData.Add(item);
+                ChartItems.Add(item);
             }
+            OnDataLoaded?.Invoke();
         }
 
-        private List<(string Label, double Value)> GetDailyStats()
+        private List<ChartData> GetDailyStats()
         {
-            var data = new List<(string, double)>();
+            var data = new List<ChartData>();
             using var conn = _db.GetConnection();
             if (conn == null) return data;
 
@@ -60,14 +71,18 @@ namespace QuanLyQuanCafe.ViewModels
 
             while (reader.Read())
             {
-                data.Add((reader.GetString("report_date"), reader.GetDouble("total")));
+                data.Add(new ChartData
+                {
+                    Label = reader.GetString("report_date"),
+                    Value = reader.GetDouble("total")
+                });
             }
             return data;
         }
 
-        private List<(string Label, double Value)> GetMonthlyStats()
+        private List<ChartData> GetMonthlyStats()
         {
-            var data = new List<(string, double)>();
+            var data = new List<ChartData>();
             using var conn = _db.GetConnection();
             if (conn == null) return data;
 
@@ -82,7 +97,11 @@ namespace QuanLyQuanCafe.ViewModels
 
             while (reader.Read())
             {
-                data.Add((reader.GetString("report_month"), reader.GetDouble("total")));
+                data.Add(new ChartData
+                {
+                    Label = reader.GetString("report_month"),
+                    Value = reader.GetDouble("total")
+                });
             }
             return data;
         }
