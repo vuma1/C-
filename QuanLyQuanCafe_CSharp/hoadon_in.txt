@@ -2,14 +2,15 @@
 |       HOA DON THANH TOAN               |
 |       COFFEE SHOP C# WPF               |
 +========================================+
-  Ngay: 16/03/2026 18:29:30
+  Ngay: 10/04/2026 15:31:28
   Ban: Bàn 01
 +----------------------------------------+
   Mon                   SL   Thanh tien
 ------------------------------------------
-  Ca phe den da          3       75,000
+  Latte                  2      110,000
+  Macchiato              1       59,000
 ------------------------------------------
-  TONG CONG:                  75,000 VND
+  TONG CONG:                 169,000 VND
 +========================================+
 |    Cam on quy khach va hen gap lai!   |
 |    Wifi: CoffeeShop / Pass: 12345     |
